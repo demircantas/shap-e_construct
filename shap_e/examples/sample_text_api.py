@@ -6,7 +6,7 @@ from shap_e.util.notebooks import create_pan_cameras, decode_latent_images, gif_
 
 import imageio
 from flask import Flask, request
-from IPython.display import display, Image
+from PIL import Image, ImageOps
 
 app = Flask(__name__)
 
@@ -16,7 +16,7 @@ model = load_model('text300M', device=device)
 diffusion = diffusion_from_config(load_config('diffusion'))
 
 render_mode = 'nerf'
-size = 32 # 64
+size = 64 # 64
 
 cameras = create_pan_cameras(size, device)
 
@@ -24,7 +24,7 @@ cameras = create_pan_cameras(size, device)
 @app.route('/construct', methods=['POST'])
 def generate_images():
     sentence = request.form.get('sentence')
-    print(f'CONSTRUCT({sentence}) initiated...')
+    print(f'\033[94mCONSTRUCT({sentence}) initiated...\033[0m')
 
     batch_size = 1
     guidance_scale = 15.0
@@ -45,16 +45,18 @@ def generate_images():
         s_churn=0,
     )
 
-    print(f'rendering {sentence}...')
+    print(f'\033[93mrendering {sentence}...\033[0m')
 
     for i, latent in enumerate(latents):
         images = decode_latent_images(xm, latent, cameras, rendering_mode=render_mode)
         images = [image.resize((image.width * 4, image.height * 4)) for image in images]
         image_path = f'images/test{i}.gif'
         imageio.mimsave(image_path, images, 'GIF', loop=0)
-        display(Image(filename=image_path))
+        # display(Image(filename=image_path))
 
     print('rendering complete')
+    image = Image.open('images/test0.gif')
+    image.show()
 
     return 'Images generated'
 
