@@ -4,6 +4,8 @@ from shap_e.diffusion.gaussian_diffusion import diffusion_from_config
 from shap_e.models.download import load_model, load_config
 from shap_e.util.notebooks import create_pan_cameras, decode_latent_images, gif_widget
 
+from shap_e.util.notebooks import decode_latent_mesh
+
 import imageio
 from flask import Flask, request
 from PIL import Image, ImageOps
@@ -57,6 +59,13 @@ def generate_images():
         imageio.mimsave(image_path, images, 'GIF', loop=0)
         # display(Image(filename=image_path))
 
+        t = decode_latent_mesh(xm, latent).tri_mesh()
+        # with open(f'/home/demircantas/shap-e/meshes/example_mesh_{i}.ply', 'wb') as f:
+        #     t.write_ply(f)
+        with open(f'/home/demircantas/shap-e/meshes/example_mesh_{i}.obj', 'w') as f:
+        # with open(f'/mnt/c/Users/demircantas/Documents/example_mesh_{i}.obj', 'w') as f:
+            t.write_obj(f)
+
     print('rendering complete')
     image = Image.open('images/test0.gif')
     image.show()
@@ -67,3 +76,5 @@ def generate_images():
 if __name__ == '__main__':
     print('Server started listening...')
     app.run()
+
+# Example of saving the latents as meshes.
